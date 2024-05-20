@@ -2,6 +2,7 @@ package routes
 
 import (
 	"main/functions"
+	utilities "main/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -41,7 +42,13 @@ func CreateEntry(c *fiber.Ctx) error {
 	website := c.FormValue("website")
 	notes := c.FormValue("notes")
 
-	functions.CreateEntry(username, password, website, notes)
+	// Hash the password
+	hashedPassword, err := utilities.HashPassword(password)
+	if err != nil {
+		return c.Status(500).SendString("Failed to hash the password")
+	}
+
+	functions.CreateEntry(username, hashedPassword, website, notes)
 
 	return c.SendString("Entry created successfully")
 }
