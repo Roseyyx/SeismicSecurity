@@ -99,21 +99,3 @@ func UpdateEntry(id primitive.ObjectID, username, password, website, notes strin
 
 	log.Println("Entry updated successfully")
 }
-
-func CreateAccessEntry(fileName, password string) {
-	coll := utilities.Client.Database("SeismicSecurity").Collection("accessEntries")
-	entry := models.AccessEntry{
-		FileName: fileName,
-		Password: password,
-	}
-
-	_, err := coll.InsertOne(context.TODO(), entry)
-	if err != nil {
-		log.Println(
-			"Error inserting access entry into database: ",
-			err.Error(),
-		)
-	}
-
-	log.Println("Access entry created successfully")
-}

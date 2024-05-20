@@ -10,7 +10,8 @@ type Entry struct {
 	Notes    string             `bson:"notes,omitempty"`
 }
 
-type AccessEntry struct {
-	FileName string `bson:"fileName,omitempty"`
-	Password string `bson:"password,omitempty"`
+type File struct {
+	Filename string `json:"filename"`
+	Content  string `json:"content"`
+	Password string `json:"password"`
 }
