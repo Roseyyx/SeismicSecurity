@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"main/functions"
-	utilities "main/utils"
+	"main/backend/functions"
+	utilities "main/backend/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"

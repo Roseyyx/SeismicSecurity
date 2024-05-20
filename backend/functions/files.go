@@ -1,7 +1,7 @@
 package functions
 
 import (
-	utilities "main/utils"
+	utilities "main/backend/utils"
 	"os"
 )
 

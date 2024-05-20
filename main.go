@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"main/routes"
-	utilities "main/utils"
+	"main/backend/routes"
+	utilities "main/backend/utils"
 
 	"github.com/gofiber/fiber/v2"
 )

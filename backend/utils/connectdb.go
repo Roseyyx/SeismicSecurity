@@ -27,15 +27,6 @@ func ConnectDB() *mongo.Client {
 		}
 	}()
 
-	// Check the connection
-	err = Client.Ping(context.Background(), nil)
-	if err != nil {
-		log.Fatalf("Error pinging MongoDB: %v", err)
-	}
-
-	// Log a message if the connection is successful
-	log.Println("Connected to MongoDB!")
-
 	// Return the MongoDB client
 	return Client
 }

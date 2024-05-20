@@ -3,8 +3,8 @@ package functions
 import (
 	"context"
 	"log"
-	"main/models"
-	utilities "main/utils"
+	"main/backend/models"
+	utilities "main/backend/utils"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
