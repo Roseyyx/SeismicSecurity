@@ -1,4 +1,4 @@
-package functions
+package helpers
 
 import (
 	utilities "main/backend/utils"

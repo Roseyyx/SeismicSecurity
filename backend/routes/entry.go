@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"main/backend/functions"
+	"main/backend/helpers"
 	utilities "main/backend/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -20,14 +20,14 @@ func RoutesHandler(app *fiber.App) {
 }
 
 func GetEntries(c *fiber.Ctx) error {
-	entries := functions.GetEntries()
+	entries := helpers.GetEntries()
 
 	return c.JSON(entries)
 }
 
 func GetEntryByName(c *fiber.Ctx) error {
 	username := c.Params("username")
-	entry := functions.GetEntryByName(username)
+	entry := helpers.GetEntryByName(username)
 
 	if entry.Username == "" {
 		return c.Status(404).SendString("Entry not found")
@@ -48,7 +48,7 @@ func CreateEntry(c *fiber.Ctx) error {
 		return c.Status(500).SendString("Failed to hash the password")
 	}
 
-	functions.CreateEntry(username, hashedPassword, website, notes)
+	helpers.CreateEntry(username, hashedPassword, website, notes)
 
 	return c.SendString("Entry created successfully")
 }
@@ -62,7 +62,7 @@ func DeleteEntry(c *fiber.Ctx) error {
 		return c.Status(400).SendString("Invalid ID")
 	}
 
-	functions.DeleteEntry(objectID)
+	helpers.DeleteEntry(objectID)
 	return c.SendString("Entry deleted successfully")
 }
 
@@ -79,6 +79,6 @@ func UpdateEntry(c *fiber.Ctx) error {
 		return c.Status(400).SendString("Invalid ID")
 	}
 
-	functions.UpdateEntry(objectID, username, password, website, notes)
+	helpers.UpdateEntry(objectID, username, password, website, notes)
 	return c.SendString("Entry updated successfully")
 }

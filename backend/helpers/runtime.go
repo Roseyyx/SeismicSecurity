@@ -1,24 +1,23 @@
-package functions
+package helpers
 
 import (
-	"context"
 	"log"
 	"main/backend/models"
 	utilities "main/backend/utils"
 )
 
+var UsingFile bool = false
+
 func Setup() {
 	if !CheckIfDatabaseExists() {
 		// TODO: Add a prompt to create a master password
+		UsingFile = true
 		CreateMasterPassword("password")
 	}
 }
 
 func CheckIfDatabaseExists() bool {
-	// Check the connection
-	err := utilities.Client.Ping(context.Background(), nil)
-
-	return err == nil
+	return utilities.HasDatabaseConnection
 }
 
 func CreateMasterPassword(password string) {

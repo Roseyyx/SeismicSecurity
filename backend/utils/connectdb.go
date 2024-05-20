@@ -9,6 +9,7 @@ import (
 )
 
 var Client *mongo.Client
+var HasDatabaseConnection bool
 
 // ConnectDB function
 func ConnectDB() *mongo.Client {
@@ -26,6 +27,18 @@ func ConnectDB() *mongo.Client {
 			log.Fatalf("Error disconnecting from MongoDB: %v", err)
 		}
 	}()
+
+	// Check the connection
+	err = Client.Ping(context.Background(), nil)
+
+	// If there is an error checking the connection
+	if err != nil {
+		log.Fatalf("Error checking the connection: %v", err)
+	} else {
+		HasDatabaseConnection = true
+	}
+
+	log.Println("Connected to MongoDB")
 
 	// Return the MongoDB client
 	return Client
