@@ -11,17 +11,19 @@ import (
 
 func CreateEntry(username, password, website, notes string) {
 	coll := utilities.Client.Database("SeismicSecurity").Collection("entries")
-	entry := models.Entry{
-		Username: username,
-		Password: password,
-		Website:  website,
-		Notes:    notes,
-	}
 
-	_, err := coll.InsertOne(context.TODO(), entry)
+	_, err := coll.InsertOne(
+		context.Background(),
+		models.Entry{
+			Username: username,
+			Password: password,
+			Website:  website,
+			Notes:    notes,
+		},
+	)
 	if err != nil {
 		log.Println(
-			"Error inserting entry into database: ",
+			"Error creating entry in database: ",
 			err.Error(),
 		)
 	}
@@ -32,20 +34,20 @@ func CreateEntry(username, password, website, notes string) {
 // return model.Entry or error
 func GetEntries() []models.Entry {
 	coll := utilities.Client.Database("SeismicSecurity").Collection("entries")
-	cursor, err := coll.Find(context.Background(), nil)
+	cursor, err := coll.Find(context.Background(), models.Entry{})
 	if err != nil {
 		log.Println(
 			"Error retrieving entries from database: ",
 			err.Error(),
 		)
-		return nil
 	}
 
 	var entries []models.Entry
-	for cursor.Next(context.Background()) {
-		var entry models.Entry
-		cursor.Decode(&entry)
-		entries = append(entries, entry)
+	if err = cursor.All(context.Background(), &entries); err != nil {
+		log.Println(
+			"Error decoding entries from database: ",
+			err.Error(),
+		)
 	}
 
 	return entries

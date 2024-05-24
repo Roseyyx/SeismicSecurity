@@ -10,13 +10,13 @@ import (
 	"os"
 )
 
-func createHash(password string) string {
+func CreateHash(password string) string {
 	hash := md5.New()
 	hash.Write([]byte(password))
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func encrypt(data []byte, passwordHash string) []byte {
+func Encrypt(data []byte, passwordHash string) []byte {
 	block, _ := aes.NewCipher([]byte(passwordHash))
 	gcm, _ := cipher.NewGCM(block)
 	nonce := make([]byte, gcm.NonceSize())
@@ -25,7 +25,7 @@ func encrypt(data []byte, passwordHash string) []byte {
 	return ciphertext
 }
 
-func decrypt(data []byte, passwordHash string) []byte {
+func Decrypt(data []byte, passwordHash string) []byte {
 	block, _ := aes.NewCipher([]byte(passwordHash))
 	gcm, _ := cipher.NewGCM(block)
 	nonceSize := gcm.NonceSize()
@@ -42,7 +42,7 @@ func EncryptFile(password string, file *os.File) {
 	file.Read(buffer)
 
 	// Encrypt the file
-	encryptedData := encrypt(buffer, createHash(password))
+	encryptedData := Encrypt(buffer, CreateHash(password))
 
 	// Write the encrypted data to the file
 	file.Seek(0, 0)
@@ -57,7 +57,7 @@ func DecryptFile(password string, file *os.File) {
 	file.Read(buffer)
 
 	// Decrypt the file
-	decryptedData := decrypt(buffer, createHash(password))
+	decryptedData := Decrypt(buffer, CreateHash(password))
 
 	// Write the decrypted data to the file
 	file.Seek(0, 0)

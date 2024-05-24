@@ -37,10 +37,24 @@ func GetEntryByName(c *fiber.Ctx) error {
 }
 
 func CreateEntry(c *fiber.Ctx) error {
-	username := c.FormValue("username")
-	password := c.FormValue("password")
-	website := c.FormValue("website")
-	notes := c.FormValue("notes")
+	// Parse the body
+	type Request struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Website  string `json:"website"`
+		Notes    string `json:"notes"`
+	}
+
+	var body Request
+	err := c.BodyParser(&body)
+	if err != nil {
+		return c.Status(400).SendString("Invalid request")
+	}
+
+	username := body.Username
+	password := body.Password
+	website := body.Website
+	notes := body.Notes
 
 	// Hash the password
 	hashedPassword, err := utilities.HashPassword(password)

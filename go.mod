@@ -3,6 +3,7 @@ module main
 go 1.22.3
 
 require (
+	fyne.io/fyne/v2 v2.4.5
 	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.15.0
@@ -10,7 +11,6 @@ require (
 )
 
 require (
-	fyne.io/fyne/v2 v2.4.5 // indirect
 	fyne.io/systray v1.10.1-0.20231115130155-104f5ef7839e // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

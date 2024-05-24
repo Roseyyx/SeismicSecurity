@@ -21,13 +21,6 @@ func ConnectDB() *mongo.Client {
 		log.Fatalf("Error connecting to MongoDB: %v", err)
 	}
 
-	defer func() {
-		// Disconnect from MongoDB
-		if err := Client.Disconnect(context.TODO()); err != nil {
-			log.Fatalf("Error disconnecting from MongoDB: %v", err)
-		}
-	}()
-
 	// Check the connection
 	err = Client.Ping(context.Background(), nil)
 
