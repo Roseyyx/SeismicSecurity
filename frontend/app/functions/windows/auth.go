@@ -41,7 +41,11 @@ func Check(myWindow fyne.Window) {
 			if input.Text == "" {
 				label.SetText("Password cannot be empty")
 			} else {
-				helpers.Login(input.Text, helpers.FilePath)
+				if helpers.Login(input.Text, "database.Seismic") {
+					ShowEntries(myWindow)
+				} else {
+					label.SetText("Password is incorrect")
+				}
 			}
 		})
 

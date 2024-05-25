@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"encoding/json"
 	"log"
 	"main/backend/models"
 	utilities "main/backend/utils"
@@ -16,12 +17,15 @@ func CreateFile(fileName, password string) *error {
 
 	// Put the encrypted password in the file
 	stringToWrite := utilities.Encrypt([]byte(password), utilities.CreateHash(password))
-	// put an identifier  before the encrypted password
-	stringToWrite = append([]byte("\nSeismic:"), stringToWrite...)
+	// put an identifier  before the encrypted password and a 2 new lines after
+	stringToWrite = append([]byte("Seismic:"), stringToWrite...)
+	stringToWrite = append(stringToWrite, []byte("\n\n")...)
 	_, err = file.Write(stringToWrite)
 	if err != nil {
 		return &err
 	}
+
+	StoreInMemory(password, fileName+".Seismic")
 
 	// Close the file
 	defer file.Close()
@@ -47,64 +51,62 @@ func OpenFile(fileName, password string) []byte {
 	buffer := make([]byte, fileSize)
 	file.Read(buffer)
 
-	// Check trough the whole file for the string "Seismic"
-	byteIndex := -1
+	// Get the empty line
+	emptyLine := 0
 	for i := 0; i < len(buffer); i++ {
-		if buffer[i] == 'S' {
-			if string(buffer[i:i+8]) == "Seismic:" {
-				byteIndex = i + 8
-				break
-			}
+		if buffer[i] == 10 && buffer[i+1] == 10 {
+			emptyLine = i
+			break
 		}
 	}
 
-	// If the string "Seismic" is not found, return nil
-	if byteIndex == -1 {
-		log.Println("File is not a Seismic file")
-		return nil
-	}
-	// Decrypt the password first
-	decryptedPassword := utilities.Decrypt(buffer[byteIndex:], utilities.CreateHash(password))
+	// Get the encrypted password
+	encryptedPassword := buffer[8:emptyLine]
 
-	// Compare the decrypted password with the input password
+	// Decrypt the password
+	decryptedPassword := utilities.Decrypt(encryptedPassword, utilities.CreateHash(password))
+
+	// Check if the password is correct
 	if string(decryptedPassword) != password {
 		log.Println("Password is incorrect")
 		return nil
 	}
 
+	// Now we filter out the password and the empty line to get the entries
+	entries := buffer[emptyLine+2:]
+
+	// decrypt the entries
+	entries = utilities.Decrypt(entries, utilities.CreateHash(password))
+
 	StoreInMemory(password, fileName)
 
-	byteIndex -= 9 // 9 because of \nSeismic:
-
-	// check if there is any data before the password
-	if string(buffer[:byteIndex]) == "" {
-		log.Println("File is corrupted | Got: ", string(buffer[:byteIndex]))
-		return nil
-	}
-
-	//Decrypt the rest of the file except the password
-	decryptedData := utilities.Decrypt(buffer[:byteIndex], utilities.CreateHash(password))
-
-	// Return the decrypted data
-	return decryptedData
+	// Return the entries
+	return entries
 }
 
-func AddToFile(data models.Entry, fileName string) *error {
+func AddToFile(data models.Entry, fileName string) error {
 	// Open the file
-	file, err := os.Open(fileName)
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Println("Error opening file")
-		return nil
+		return err
 	}
 
 	// Close the file
 	defer file.Close()
 
-	// Append the data to the file at the start
-	encrypedData := utilities.Encrypt([]byte(data), utilities.CreateHash(GetFromMemory().Password))
-	_, err = file.Write([]byte(encrypedData))
+	// Marshal the data
+	dataBytes, err := json.Marshal(data)
 	if err != nil {
-		return &err
+		return err
+	}
+
+	// Encrypt the data
+	encryptedData := utilities.Encrypt(dataBytes, utilities.CreateHash(GetFromMemory().Password))
+
+	// Write the data to the file
+	_, err = file.Write(encryptedData)
+	if err != nil {
+		return err
 	}
 
 	// Return nil if no error
@@ -120,4 +122,35 @@ func StoreInMemory(password, fileName string) {
 
 func GetFromMemory() models.File {
 	return file
+}
+
+func GetEntriesFromBytes(entries []byte) ([]models.Entry, error) {
+	// Get the entries
+	entriesString := string(entries)
+
+	// Split the entries
+	entriesArray := utilities.Split(entriesString, "}")
+
+	// Create a slice to store the entries
+	var entriesSlice []models.Entry
+
+	// Unmarshal each entry
+	for i := 0; i < len(entriesArray); i++ {
+		if i == len(entriesArray)-1 {
+			break
+		}
+		// Add the } back to the entry
+		entriesArray[i] += "}"
+		// Unmarshal the entry
+		var entry models.Entry
+		err := json.Unmarshal([]byte(entriesArray[i]), &entry)
+		if err != nil {
+			return nil, err
+		}
+		// Append the entry to the slice
+		entriesSlice = append(entriesSlice, entry)
+	}
+
+	// Return the entries
+	return entriesSlice, nil
 }

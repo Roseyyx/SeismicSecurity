@@ -1,15 +1,15 @@
 package helpers
 
 import (
-	"log"
 	"main/backend/models"
 )
 
-func Login(password, file string) {
-	receivedBytes := OpenFile(file, password)
-
-	// print the decrypted password
-	log.Println(string(receivedBytes))
+func Login(password, file string) bool {
+	bytes := OpenFile(file, password)
+	if bytes == nil {
+		return false
+	}
+	return true
 }
 
 func Register(password string) {
