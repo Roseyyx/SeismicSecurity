@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"log"
+	"main/backend/models"
 	utilities "main/backend/utils"
 	"os"
 )
@@ -13,15 +14,8 @@ func CreateFile(fileName, password string) *error {
 		return &err
 	}
 
-	// Write random data to the file before the password
-	stringToWrite := utilities.Encrypt([]byte("thisisgarbage"), utilities.CreateHash(password))
-	_, err = file.Write(stringToWrite)
-	if err != nil {
-		return &err
-	}
-
 	// Put the encrypted password in the file
-	stringToWrite = utilities.Encrypt([]byte(password), utilities.CreateHash(password))
+	stringToWrite := utilities.Encrypt([]byte(password), utilities.CreateHash(password))
 	// put an identifier  before the encrypted password
 	stringToWrite = append([]byte("\nSeismic:"), stringToWrite...)
 	_, err = file.Write(stringToWrite)
@@ -78,6 +72,8 @@ func OpenFile(fileName, password string) []byte {
 		return nil
 	}
 
+	StoreInMemory(password, fileName)
+
 	byteIndex -= 9 // 9 because of \nSeismic:
 
 	// check if there is any data before the password
@@ -91,4 +87,37 @@ func OpenFile(fileName, password string) []byte {
 
 	// Return the decrypted data
 	return decryptedData
+}
+
+func AddToFile(data models.Entry, fileName string) *error {
+	// Open the file
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Println("Error opening file")
+		return nil
+	}
+
+	// Close the file
+	defer file.Close()
+
+	// Append the data to the file at the start
+	encrypedData := utilities.Encrypt([]byte(data), utilities.CreateHash(GetFromMemory().Password))
+	_, err = file.Write([]byte(encrypedData))
+	if err != nil {
+		return &err
+	}
+
+	// Return nil if no error
+	return nil
+}
+
+var file models.File
+
+func StoreInMemory(password, fileName string) {
+	file.Password = password
+	file.Filename = fileName
+}
+
+func GetFromMemory() models.File {
+	return file
 }
