@@ -1,11 +1,9 @@
 package functions
 
 import (
-	"encoding/json"
 	"fmt"
+	"log"
 	"main/backend/helpers"
-	"main/backend/models"
-	"net/http"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -14,39 +12,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func GetAllEntries() ([]models.Entry, error) {
-	resp, err := http.Get("http://localhost:4545/api/v1/entries")
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	var entries []models.Entry
-
-	err = json.NewDecoder(resp.Body).Decode(&entries)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return entries, nil
-}
-
-func Setup() {
-	// entries, err := GetAllEntries()
-
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	myApp := app.New()
-	myWindow := myApp.NewWindow("Hello")
-
-	myWindow.Resize(fyne.NewSize(800, 600))
-
+func check(myWindow fyne.Window) {
 	if !helpers.CheckFile() {
 
 		input := widget.NewEntry()
@@ -57,15 +23,16 @@ func Setup() {
 		button := widget.NewButton("Submit", func() {
 			if input.Text == "" {
 				label.SetText("Password cannot be empty")
+			} else {
+				log.Println(input.Text)
+				helpers.Register(input.Text)
+				check(myWindow)
 			}
-			helpers.Register(input.Text)
 		})
 
-		// how do i make it so not everything is centered but instead the label is on top and the input and button are centered
 		content := container.New(layout.NewVBoxLayout(), label, input, button)
 
 		myWindow.SetContent(content)
-
 	} else {
 		input := widget.NewEntry()
 		input.SetPlaceHolder("Enter your password")
@@ -75,8 +42,9 @@ func Setup() {
 		button := widget.NewButton("Submit", func() {
 			if input.Text == "" {
 				label.SetText("Password cannot be empty")
+			} else {
+				helpers.Login(input.Text, helpers.FilePath)
 			}
-			helpers.Login(input.Text, helpers.FilePath)
 		})
 
 		content := container.New(layout.NewVBoxLayout(), label, input, button)
@@ -84,24 +52,16 @@ func Setup() {
 		myWindow.SetContent(content)
 
 	}
+}
 
-	// listView := widget.NewList(func() int {
-	// 	return 10 //len(entries)
-	// }, func() fyne.CanvasObject {
-	// 	return widget.NewLabel("Template")
-	// }, func(i widget.ListItemID, o fyne.CanvasObject) {
-	// 	//o.(*widget.Label).SetText(entries[i].Username)
-	// 	o.(*widget.Label).SetText("Test")
-	// })
+func Setup() {
 
-	// split := container.NewHSplit(
-	// 	listView,
-	// 	container.NewStack(),
-	// )
+	myApp := app.New()
+	myWindow := myApp.NewWindow("Hello")
 
-	// split.Offset = 0.2
+	myWindow.Resize(fyne.NewSize(800, 600))
 
-	// myWindow.SetContent(split)
+	check(myWindow)
 
 	myWindow.Show()
 	myApp.Run()

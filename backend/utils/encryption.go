@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
-	"os"
 )
 
 func CreateHash(password string) string {
@@ -32,34 +31,4 @@ func Decrypt(data []byte, passwordHash string) []byte {
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, _ := gcm.Open(nil, nonce, ciphertext, nil)
 	return plaintext
-}
-
-func EncryptFile(password string, file *os.File) {
-	// Read the file
-	fileInfo, _ := file.Stat()
-	fileSize := fileInfo.Size()
-	buffer := make([]byte, fileSize)
-	file.Read(buffer)
-
-	// Encrypt the file
-	encryptedData := Encrypt(buffer, CreateHash(password))
-
-	// Write the encrypted data to the file
-	file.Seek(0, 0)
-	file.Write(encryptedData)
-}
-
-func DecryptFile(password string, file *os.File) {
-	// Read the file
-	fileInfo, _ := file.Stat()
-	fileSize := fileInfo.Size()
-	buffer := make([]byte, fileSize)
-	file.Read(buffer)
-
-	// Decrypt the file
-	decryptedData := Decrypt(buffer, CreateHash(password))
-
-	// Write the decrypted data to the file
-	file.Seek(0, 0)
-	file.Write(decryptedData)
 }

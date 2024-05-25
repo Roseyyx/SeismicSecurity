@@ -13,10 +13,17 @@ func CreateFile(fileName, password string) *error {
 		return &err
 	}
 
+	// Write random data to the file before the password
+	stringToWrite := utilities.Encrypt([]byte("thisisgarbage"), utilities.CreateHash(password))
+	_, err = file.Write(stringToWrite)
+	if err != nil {
+		return &err
+	}
+
 	// Put the encrypted password in the file
-	stringToWrite := utilities.Encrypt([]byte(password), utilities.CreateHash(password))
+	stringToWrite = utilities.Encrypt([]byte(password), utilities.CreateHash(password))
 	// put an identifier  before the encrypted password
-	stringToWrite = append([]byte("Seismic:"), stringToWrite...)
+	stringToWrite = append([]byte("\nSeismic:"), stringToWrite...)
 	_, err = file.Write(stringToWrite)
 	if err != nil {
 		return &err
@@ -62,12 +69,8 @@ func OpenFile(fileName, password string) []byte {
 		log.Println("File is not a Seismic file")
 		return nil
 	}
-
-	log.Println(string(buffer[byteIndex:]))
-
 	// Decrypt the password first
 	decryptedPassword := utilities.Decrypt(buffer[byteIndex:], utilities.CreateHash(password))
-	log.Println(string(decryptedPassword))
 
 	// Compare the decrypted password with the input password
 	if string(decryptedPassword) != password {
@@ -75,9 +78,17 @@ func OpenFile(fileName, password string) []byte {
 		return nil
 	}
 
-	// Decrypt the rest of the file except the password
-	//decryptedData := utilities.Decrypt(buffer[:byteIndex], utilities.CreateHash(password))
+	byteIndex -= 9 // 9 because of \nSeismic:
+
+	// check if there is any data before the password
+	if string(buffer[:byteIndex]) == "" {
+		log.Println("File is corrupted | Got: ", string(buffer[:byteIndex]))
+		return nil
+	}
+
+	//Decrypt the rest of the file except the password
+	decryptedData := utilities.Decrypt(buffer[:byteIndex], utilities.CreateHash(password))
 
 	// Return the decrypted data
-	return decryptedPassword
+	return decryptedData
 }
