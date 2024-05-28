@@ -24,7 +24,6 @@ func Check(myWindow fyne.Window) {
 			} else {
 				log.Println(input.Text)
 				helpers.Register(input.Text)
-				CreateEntry(myWindow)
 			}
 		})
 
@@ -42,7 +41,6 @@ func Check(myWindow fyne.Window) {
 				label.SetText("Password cannot be empty")
 			} else {
 				if helpers.Login(input.Text, "database.Seismic") {
-					ShowEntries(myWindow)
 				} else {
 					label.SetText("Password is incorrect")
 				}

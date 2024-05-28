@@ -1,64 +1,67 @@
 package windows
 
 import (
+	"main/backend/helpers"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
 
+func CreateEntry() *fyne.Container {
+	username := widget.NewEntry()
+	password := widget.NewPasswordEntry()
+	generatePassword := widget.NewButton("Generate Password", func() {
+		password.Text = "random"
+		password.Refresh()
+	})
+	website := widget.NewEntry()
+	notes := widget.NewEntry()
+
+	form := &widget.Form{
+		Items: []*widget.FormItem{
+			{Text: "Username", Widget: username},
+			{Text: "Password", Widget: password},
+			{Text: "", Widget: generatePassword},
+			{Text: "Website", Widget: website},
+			{Text: "Notes", Widget: notes},
+		},
+		OnSubmit: func() {
+			helpers.CreateEntry(username.Text, password.Text, website.Text, notes.Text)
+		},
+	}
+
+	return container.NewVBox(form)
+}
+
+func GetEntries() *fyne.Container {
+	entries := helpers.GetEntries("rose")
+	entriesList := widget.NewList(
+		func() int {
+			return len(entries)
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("Template")
+		},
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(entries[i].Username)
+		},
+	)
+
+	return container.NewVBox(entriesList)
+}
+
 func MainLayout(myWindow fyne.Window, myApp fyne.App) {
-	Option1 := widget.NewButton("Database", func() {
-		// drop down menu
-		dropDown := widget.NewSelect([]string{"New Database", "Open Database", "Save Database"}, func(s string) {
-			switch s {
-			case "New Database":
-				file := dialog.NewFileSave(func(writer fyne.URIWriteCloser, err error) {
-					if err != nil {
-						dialog.ShowError(err, myWindow)
-						return
-					}
-					if writer == nil {
-						return
-					}
-					defer writer.Close()
-				}, myWindow)
-				file.SetFileName("database.Seismic")
-				file.Show()
-			case "Open Database":
-				// open new window
-				newWindow := myApp.NewWindow("Open Database")
-				newWindow.Resize(fyne.NewSize(400, 300))
-				newWindow.Show()
-			case "Save Database":
-				// open new window
-				newWindow := myApp.NewWindow("Save Database")
-				newWindow.Resize(fyne.NewSize(400, 300))
-				newWindow.Show()
-			}
-		})
+	// Create a tab container
+	tabs := container.NewAppTabs(
+		container.NewTabItem("Create Entry", CreateEntry()),
+		container.NewTabItem("Show Entries", GetEntries()),
+		container.NewTabItem("Database", widget.NewLabel("Database")),
+		container.NewTabItem("Settings", widget.NewLabel("Settings")),
+		container.NewTabItem("About", widget.NewLabel("About")),
+	)
 
-		canvasObject := container.New(layout.NewVBoxLayout(), widget.NewLabel("Database"), dropDown)
-		myWindow.SetContent(canvasObject)
-	})
+	// Set the content of the window to the tab container
+	myWindow.SetContent(tabs)
 
-	Option2 := widget.NewButton("Entries", func() {
-		canvasObject := container.New(layout.NewVBoxLayout(), widget.NewLabel("Entries"))
-		myWindow.SetContent(canvasObject)
-	})
-
-	Option3 := widget.NewButton("Settings", func() {
-		canvasObject := container.New(layout.NewVBoxLayout(), widget.NewLabel("Settings"))
-		myWindow.SetContent(canvasObject)
-	})
-
-	// make h split
-	myWindow.SetContent(container.New(layout.NewVBoxLayout(),
-		container.New(layout.NewHBoxLayout(),
-			Option1,
-			Option2,
-			Option3,
-		),
-	))
 }

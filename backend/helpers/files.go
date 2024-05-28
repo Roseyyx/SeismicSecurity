@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"encoding/json"
 	"log"
 	"main/backend/models"
 	utilities "main/backend/utils"
@@ -22,7 +21,7 @@ func CreateFile(password string) {
 	encryptedKey := utilities.Encrypt(key, []byte(hashedPassword))
 	log.Println(string(key))
 
-	StoreInMemory(hashedPassword, "database.Seismic", string(key))
+	StoreInMemory(password, "database.Seismic", string(key))
 
 	// Write the key to the file between the words "STARTKEY" and "ENDKEY"
 	_, err = file.WriteString("STARTKEY\n" + string(encryptedKey) + "\nENDKEY")
@@ -67,7 +66,7 @@ func ReadFile(password string) []byte {
 		log.Println("Incorrect password")
 	}
 
-	StoreInMemory(string(hashedPassword), "database.Seismic", string(decryptedKey))
+	StoreInMemory(password, "database.Seismic", string(decryptedKey))
 
 	// Get the rest of the data in the file after the "ENDKEY"
 	data := buffer[endIndex+len(endKey):]
@@ -91,14 +90,11 @@ func AddToFile(data models.Entry) {
 	}
 	defer file.Close()
 
-	// transform the data to a byte array and then to a json object
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		log.Println(err)
-	}
+	stringID := data.ID.String()
+	stringData := "{\"ID\":\"" + stringID + "\",\"Username\":\"" + data.Username + "\",\"Password\":\"" + data.Password + "\",\"Website\":\"" + data.Website + "\",\"Notes\":\"" + data.Notes + "\"}"
 
 	// Encrypt the data with the key
-	encryptedData := utilities.Encrypt(dataBytes, []byte(File.Key))
+	encryptedData := utilities.Encrypt([]byte(stringData), []byte(File.Key))
 
 	// Write the encrypted data to the file
 	_, err = file.Write(encryptedData)
