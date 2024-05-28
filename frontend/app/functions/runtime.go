@@ -15,7 +15,7 @@ func Setup() {
 
 	myWindow.Resize(fyne.NewSize(800, 600))
 
-	windows.Check(myWindow)
+	windows.MainLayout(myWindow, myApp)
 
 	myWindow.Show()
 	myApp.Run()

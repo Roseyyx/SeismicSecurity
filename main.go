@@ -13,7 +13,7 @@ import (
 
 func main() {
 
-	utilities.Client = utilities.ConnectDB()
+	//utilities.Client = utilities.ConnectDB()
 
 	if !helpers.Debug {
 		functions.Setup()

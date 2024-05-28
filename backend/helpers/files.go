@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"encoding/json"
 	"log"
 	"main/backend/models"
 	utilities "main/backend/utils"
@@ -21,7 +22,7 @@ func CreateFile(password string) {
 	encryptedKey := utilities.Encrypt(key, []byte(hashedPassword))
 	log.Println(string(key))
 
-	StoreInMemory(hashedPassword, "database.Seismic", string(encryptedKey))
+	StoreInMemory(hashedPassword, "database.Seismic", string(key))
 
 	// Write the key to the file between the words "STARTKEY" and "ENDKEY"
 	_, err = file.WriteString("STARTKEY\n" + string(encryptedKey) + "\nENDKEY")
@@ -31,7 +32,7 @@ func CreateFile(password string) {
 
 }
 
-func ReadFile(password string) {
+func ReadFile(password string) []byte {
 	// The key is between the words "STARTKEY" and "ENDKEY"
 	file, err := os.Open("database.Seismic")
 	if err != nil {
@@ -67,6 +68,44 @@ func ReadFile(password string) {
 	}
 
 	StoreInMemory(string(hashedPassword), "database.Seismic", string(decryptedKey))
+
+	// Get the rest of the data in the file after the "ENDKEY"
+	data := buffer[endIndex+len(endKey):]
+
+	if len(data) == 0 {
+		log.Println("No data in the file")
+	}
+
+	// Decrypt the data with the key
+	decryptedData := utilities.Decrypt(data, decryptedKey)
+
+	log.Println(string(decryptedData))
+
+	return decryptedData
+}
+
+func AddToFile(data models.Entry) {
+	file, err := os.OpenFile("database.Seismic", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	defer file.Close()
+
+	// transform the data to a byte array and then to a json object
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		log.Println(err)
+	}
+
+	// Encrypt the data with the key
+	encryptedData := utilities.Encrypt(dataBytes, []byte(File.Key))
+
+	// Write the encrypted data to the file
+	_, err = file.Write(encryptedData)
+	if err != nil {
+		log.Println(err)
+	}
+
 }
 
 var File models.File
@@ -75,4 +114,8 @@ func StoreInMemory(password, filename, key string) {
 	File.Password = password
 	File.Filename = filename
 	File.Key = key
+}
+
+func GetFromMemory() models.File {
+	return File
 }
