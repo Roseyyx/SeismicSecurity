@@ -3,29 +3,51 @@ package utilities
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
 	"crypto/rand"
-	"encoding/hex"
 	"io"
+	"log"
+
+	"golang.org/x/crypto/blake2b"
 )
 
 func CreateHash(password string) string {
-	hash := md5.New()
-	hash.Write([]byte(password))
-	return hex.EncodeToString(hash.Sum(nil))
+	hash, err := blake2b.New(32, nil)
+	if err != nil {
+		log.Println(err)
+	}
+	_, err = hash.Write([]byte(password))
+	if err != nil {
+		log.Println(err)
+	}
+	return string(hash.Sum(nil))
 }
 
-func Encrypt(data []byte, passwordHash string) []byte {
-	block, _ := aes.NewCipher([]byte(passwordHash))
-	gcm, _ := cipher.NewGCM(block)
+func GenerateAESKey() []byte {
+	key := make([]byte, 32)
+	_, _ = rand.Read(key)
+	return key
+}
+
+func Encrypt(data, key []byte) []byte {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		log.Println(err)
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		log.Println(err)
+	}
 	nonce := make([]byte, gcm.NonceSize())
-	io.ReadFull(rand.Reader, nonce)
+	_, err = io.ReadFull(rand.Reader, nonce)
+	if err != nil {
+		log.Println(err)
+	}
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
 	return ciphertext
 }
 
-func Decrypt(data []byte, passwordHash string) []byte {
-	block, _ := aes.NewCipher([]byte(passwordHash))
+func Decrypt(data, key []byte) []byte {
+	block, _ := aes.NewCipher(key)
 	gcm, _ := cipher.NewGCM(block)
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]

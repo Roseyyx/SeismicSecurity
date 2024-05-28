@@ -17,3 +17,19 @@ func Split(entries, separator string) []string {
 	// Return the slice
 	return entriesSlice
 }
+
+func FindIndex(buffer, startKey []byte) int {
+	// Find the index of the start key
+	index := -1
+	for i := 0; i < len(buffer); i++ {
+		if buffer[i] == startKey[0] {
+			if string(buffer[i:i+len(startKey)]) == string(startKey) {
+				index = i
+				break
+			}
+		}
+	}
+
+	// Return the index
+	return index
+}

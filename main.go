@@ -16,7 +16,6 @@ func main() {
 	utilities.Client = utilities.ConnectDB()
 
 	if !helpers.Debug {
-		log.Println("Using File")
 		functions.Setup()
 	} else {
 		app := fiber.New(fiber.Config{

@@ -12,6 +12,6 @@ type Entry struct {
 
 type File struct {
 	Filename string `json:"filename"`
-	Content  string `json:"content"`
+	Key      string `json:"key"`
 	Password string `json:"password"`
 }
